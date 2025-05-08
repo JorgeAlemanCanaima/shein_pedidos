@@ -1,32 +1,44 @@
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, url_for
 import sqlite3
+from datetime import datetime
 
 app = Flask(__name__)
 
-def get_db_connection():
-    conn = sqlite3.connect('pedidos.db')
-    conn.row_factory = sqlite3.Row
-    return conn
-
 @app.route('/')
 def index():
-    conn = get_db_connection()
-    pedidos = conn.execute('SELECT * FROM pedidos ORDER BY id DESC').fetchall()
+    conn = sqlite3.connect('pedidos.db')
+    c = conn.cursor()
+    c.execute('SELECT * FROM pedidos ORDER BY id DESC')
+    pedidos = c.fetchall()
     conn.close()
     return render_template('index.html', pedidos=pedidos)
 
 @app.route('/agregar', methods=['POST'])
-def agregar():
+def agregar_pedido():
     numero_pedido = request.form['numero_pedido']
     numero_seguimiento = request.form['numero_seguimiento']
-    cantidad_items = request.form['cantidad_items']
     
-    conn = get_db_connection()
-    conn.execute('INSERT INTO pedidos (numero_pedido, numero_seguimiento, cantidad_items) VALUES (?, ?, ?)',
-                 (numero_pedido, numero_seguimiento, cantidad_items))
+    conn = sqlite3.connect('pedidos.db')
+    c = conn.cursor()
+    c.execute('INSERT INTO pedidos (numero_pedido, numero_seguimiento) VALUES (?, ?)',
+              (numero_pedido, numero_seguimiento))
     conn.commit()
     conn.close()
-    return redirect('/')
+    
+    return redirect(url_for('index'))
+
+@app.route('/actualizar_estado/<int:id>', methods=['POST'])
+def actualizar_estado(id):
+    nuevo_estado = request.form['estado']
+    
+    conn = sqlite3.connect('pedidos.db')
+    c = conn.cursor()
+    c.execute('UPDATE pedidos SET estado = ? WHERE id = ?',
+              (nuevo_estado, id))
+    conn.commit()
+    conn.close()
+    
+    return redirect(url_for('index'))
 
 if __name__ == '__main__':
     app.run(debug=True)
