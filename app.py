@@ -4,8 +4,23 @@ from datetime import datetime
 
 app = Flask(__name__)
 
+def init_db():
+    conn = sqlite3.connect('pedidos.db')
+    c = conn.cursor()
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS pedidos (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            numero_pedido TEXT NOT NULL,
+            numero_seguimiento TEXT,
+            estado TEXT DEFAULT 'Pendiente'
+        )
+    ''')
+    conn.commit()
+    conn.close()
+
 @app.route('/')
 def index():
+    init_db()  # Asegurarse de que la tabla existe
     conn = sqlite3.connect('pedidos.db')
     c = conn.cursor()
     c.execute('SELECT * FROM pedidos ORDER BY id DESC')
