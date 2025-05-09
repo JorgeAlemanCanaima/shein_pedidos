@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, jsonify
 import sqlite3
 from datetime import datetime
 
@@ -23,7 +23,7 @@ def index():
     init_db()  # Asegurarse de que la tabla existe
     conn = sqlite3.connect('pedidos.db')
     c = conn.cursor()
-    c.execute('SELECT * FROM pedidos ORDER BY id DESC')
+    c.execute('SELECT * FROM pedidos ')
     pedidos = c.fetchall()
     conn.close()
     return render_template('index.html', pedidos=pedidos)
@@ -40,7 +40,7 @@ def agregar_pedido():
     conn.commit()
     conn.close()
     
-    return redirect(url_for('index'))
+    return jsonify({'success': True})
 
 @app.route('/actualizar_estado/<int:id>', methods=['POST'])
 def actualizar_estado(id):
